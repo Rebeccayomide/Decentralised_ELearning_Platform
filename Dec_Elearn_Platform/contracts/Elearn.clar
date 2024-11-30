@@ -105,19 +105,37 @@
     (map-get? course-discussions { course-id: course-id, post-id: post-id })
 )
 
-;; Only showing the corrected function for clarity, the rest of the contract remains the same
+;; Public functions
 
-(define-read-only (get-instructor-courses (instructor principal))
-    (filter 
-        (lambda (course-id)
-            (let ((course (get-course course-id)))
-                (and (is-some course)
-                     (is-eq (get instructor (unwrap! course err-not-found)) instructor))))
-        (map uint-to-uint (list u1 u2 u3 u4 u5 u6 u7 u8 u9 u10))  ;; Example range of course IDs
+;; Student Profile Management
+(define-public (create-student-profile (name (string-ascii 50)))
+    (let ((existing-profile (get-student-profile tx-sender)))
+        (if (is-some existing-profile)
+            err-already-exists
+            (ok (map-set student-profiles
+                { student: tx-sender }
+                {
+                    name: name,
+                    completed-courses: u0,
+                    total-spent: u0,
+                    achievements: (list),
+                    joined-at: block-height,
+                    preferences: (list)
+                }
+            ))
+        )
     )
 )
 
-;; Helper function to maintain uint type
-(define-private (uint-to-uint (id uint))
-    id
+(define-public (update-student-preferences (preferences (list 5 (string-ascii 50))))
+    (let ((profile (get-student-profile tx-sender)))
+        (match profile
+            profile-data
+            (ok (map-set student-profiles
+                { student: tx-sender }
+                (merge profile-data { preferences: preferences })
+            ))
+            err-not-found
+        )
+    )
 )
