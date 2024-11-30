@@ -82,3 +82,42 @@
 (define-data-var next-course-id uint u1)
 (define-data-var next-post-id uint u1)
 (define-data-var platform-fee-percentage uint u5) ;; 5% platform fee
+
+
+;; Read-only functions
+(define-read-only (get-course (course-id uint))
+    (map-get? courses { course-id: course-id })
+)
+
+(define-read-only (get-enrollment (student principal) (course-id uint))
+    (map-get? enrollments { student: student, course-id: course-id })
+)
+
+(define-read-only (get-instructor (instructor principal))
+    (map-get? instructor-details { instructor: instructor })
+)
+
+(define-read-only (get-student-profile (student principal))
+    (map-get? student-profiles { student: student })
+)
+
+(define-read-only (get-discussion-post (course-id uint) (post-id uint))
+    (map-get? course-discussions { course-id: course-id, post-id: post-id })
+)
+
+;; Only showing the corrected function for clarity, the rest of the contract remains the same
+
+(define-read-only (get-instructor-courses (instructor principal))
+    (filter 
+        (lambda (course-id)
+            (let ((course (get-course course-id)))
+                (and (is-some course)
+                     (is-eq (get instructor (unwrap! course err-not-found)) instructor))))
+        (map uint-to-uint (list u1 u2 u3 u4 u5 u6 u7 u8 u9 u10))  ;; Example range of course IDs
+    )
+)
+
+;; Helper function to maintain uint type
+(define-private (uint-to-uint (id uint))
+    id
+)
